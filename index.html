@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chosen Palette: Calm Harmony (Stone, Taupe, with subtle elemental accents) -->
     <!-- Application Structure Plan: A single-page application with a top navigation bar. The 'Home' module serves as an infographic landing page. Other modules are: 1. Location Scout (Checklist with detailed feedback), 2. Layout Analyzer (Interactive Grid with enhanced drag-drop and more items), 3. Owner's Profile (Selector). -->
-    <!-- Visualization & Content Choices: Enhanced Module 1 to provide detailed, reason-based feedback for each checklist item, improving user understanding. Enhanced Module 2 with a trash/return feature for drag-and-drop and added more pharmacy-specific icons. The analysis text for the 'draining' element relationship has been clarified for better comprehension. -->
+    <!-- Visualization & Content Choices: Corrected the infographic layout for the 4 Celestial Animals to match the user's reference (viewer's perspective looking AT the shop), which places the Tiger on the left of the image and Dragon on the right, resolving a key point of confusion. Labels are kept accurate ("Tiger (Right)", "Dragon (Left)"). -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -97,19 +97,19 @@
                                 <p class="text-xs text-stone-600 mt-1">ความมั่นคง, การสนับสนุน</p>
                             </div>
                             <div></div>
-                            <div class="p-2 bg-green-100 rounded-lg flex flex-col justify-center">
-                                <p class="text-2xl">🐲</p>
-                                <p class="font-semibold text-xs">มังกรเขียว (ซ้าย)</p>
-                                <p class="text-xs text-stone-600 mt-1">อำนาจ, บารมี, การค้า</p>
+                            <div class="p-2 bg-gray-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐅</p>
+                                <p class="font-semibold text-xs">เสือขาว (ขวา)</p>
+                                <p class="text-xs text-stone-600 mt-1">การป้องกัน, คุ้มครอง</p>
                             </div>
                             <div class="p-2 bg-yellow-100 rounded-lg flex flex-col justify-center items-center">
                                 <p class="text-4xl">⚕️</p>
                                 <p class="font-bold text-xs">ร้านยา</p>
                             </div>
-                            <div class="p-2 bg-gray-100 rounded-lg flex flex-col justify-center">
-                                <p class="text-2xl">🐅</p>
-                                <p class="font-semibold text-xs">เสือขาว (ขวา)</p>
-                                <p class="text-xs text-stone-600 mt-1">การป้องกัน, คุ้มครอง</p>
+                             <div class="p-2 bg-green-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐲</p>
+                                <p class="font-semibold text-xs">มังกรเขียว (ซ้าย)</p>
+                                <p class="text-xs text-stone-600 mt-1">อำนาจ, บารมี, การค้า</p>
                             </div>
                             <div></div>
                              <div class="p-2 bg-red-100 rounded-lg flex flex-col justify-center">
@@ -358,7 +358,6 @@ document.addEventListener('DOMContentLoaded', function() {
         for (const q in inputs) {
             const value = inputs[q].value == '2' || inputs[q].value == '3' ? inputs[q].value : (inputs[q].value == '0' ? '0' : '1');
             const key = q.toString();
-            // A bit of a hack to normalize radio button values to match the advice data keys
             let adviceKey = inputs[q].value;
             if (key === 'q1' || key === 'q4') adviceKey = adviceKey === '2' ? '2' : adviceKey;
             if (key === 'q2' || key === 'q3') adviceKey = adviceKey === '3' ? '3' : adviceKey;
