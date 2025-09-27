@@ -6,8 +6,8 @@
     <title>ผู้ช่วยจัดฮวงจุ้ยร้านยา (Pharma Feng Shui Assistant)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chosen Palette: Calm Harmony (Stone, Taupe, with subtle elemental accents) -->
-    <!-- Application Structure Plan: A single-page application with a top navigation bar. A new 'Home' module serves as an infographic landing page, summarizing key concepts. The other modules are: 1. Location Scout (Checklist), 2. Layout Analyzer (Interactive Grid), 3. Owner's Profile (Selector), 4. Knowledge Base (Accordion). This modular structure, starting with an educational home page, guides the user from theory to practice. -->
-    <!-- Visualization & Content Choices: The core interaction remains the HTML/CSS Grid-based 'Layout Analyzer' with improved drag-and-drop functionality (draggable=true added). Items are now more pharmacy-specific. A visual indicator for the "shop front" has been added, dynamically updated with JS. The new Home module uses a flexbox/grid layout to present information as an infographic, using icons and colored blocks instead of plain text, enhancing visual appeal and comprehension. -->
+    <!-- Application Structure Plan: A single-page application with a top navigation bar. The 'Home' module serves as an infographic landing page. Other modules are: 1. Location Scout (Checklist with detailed feedback), 2. Layout Analyzer (Interactive Grid with enhanced drag-drop and more items), 3. Owner's Profile (Selector). -->
+    <!-- Visualization & Content Choices: Enhanced Module 1 to provide detailed, reason-based feedback for each checklist item, improving user understanding. Enhanced Module 2 with a trash/return feature for drag-and-drop and added more pharmacy-specific icons. The analysis text for the 'draining' element relationship has been clarified for better comprehension. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -43,16 +43,25 @@
         .drop-zone.drag-over {
             background-color: #D6D3D1; 
         }
-        .drop-zone .placed-item {
-            cursor: default;
+        .drop-zone .placed-item, #item-palette .placed-item {
+            cursor: grab;
         }
         .front-indicator {
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 5px;
-            background-color: #F97316;
+            height: 100%;
+            border: 3px solid #F97316;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+        #trash-can {
+            transition: all 0.3s;
+        }
+        #trash-can.drag-over {
+            background-color: #FECACA;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -171,9 +180,8 @@
                 </div>
                 <button id="calculate-scout-score" class="mt-6 bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition">ประเมินคะแนน</button>
                 <div id="scout-result" class="mt-6 p-4 bg-stone-100 rounded-lg hidden">
-                    <h3 class="font-bold text-lg">ผลการประเมิน:</h3>
-                    <p id="scout-score-text" class="text-xl"></p>
-                    <p id="scout-advice-text"></p>
+                    <h3 class="font-bold text-lg mb-2">สรุปผลการประเมิน: <span id="scout-score-text" class="text-xl"></span></h3>
+                    <div id="scout-advice-breakdown" class="space-y-3"></div>
                 </div>
             </div>
         </section>
@@ -209,6 +217,14 @@
                                 <div draggable="true" data-item="sofa" data-element="earth" class="drag-item p-2 bg-white rounded shadow text-center">🛋️ ที่นั่งรอ</div>
                                 <div draggable="true" data-item="scale" data-element="metal" class="drag-item p-2 bg-white rounded shadow text-center">⚖️ เครื่องชั่ง</div>
                                 <div draggable="true" data-item="light" data-element="fire" class="drag-item p-2 bg-white rounded shadow text-center">💡 ป้ายไฟ/แสง</div>
+                                <div draggable="true" data-item="consult-desk" data-element="wood" class="drag-item p-2 bg-white rounded shadow text-center">🧑‍⚕️ โต๊ะปรึกษา</div>
+                                <div draggable="true" data-item="water-cooler" data-element="water" class="drag-item p-2 bg-white rounded shadow text-center">💧 จุดบริการน้ำ</div>
+                                <div draggable="true" data-item="plant" data-element="wood" class="drag-item p-2 bg-white rounded shadow text-center">🌿 ต้นไม้</div>
+                                <div draggable="true" data-item="fridge" data-element="metal" class="drag-item p-2 bg-white rounded shadow text-center">🧊 ตู้เย็น</div>
+                                <div draggable="true" data-item="brochure-stand" data-element="wood" class="drag-item p-2 bg-white rounded shadow text-center">📰 จุดวางโบรชัวร์</div>
+                           </div>
+                           <div id="trash-can" class="mt-2 p-4 bg-red-200 text-center rounded-lg border-2 border-dashed border-red-400">
+                                🗑️ ลากมานี่เพื่อทิ้ง
                            </div>
                         </div>
                          <div class="flex gap-2">
@@ -217,6 +233,7 @@
                          </div>
                     </div>
                     <div class="lg:col-span-2">
+                        <p class="text-center mb-2 font-semibold">กรอบสีส้ม 🟧 คือด้านหน้าร้านของคุณ</p>
                         <div id="layout-grid" class="grid grid-cols-3 gap-1 bg-stone-300 rounded-lg p-1 aspect-square">
                         </div>
                     </div>
@@ -293,34 +310,69 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     switchModule('home');
-
+    
     const calculateScoutScoreBtn = document.getElementById('calculate-scout-score');
-    calculateScoutScoreBtn.addEventListener('click', () => {
-        const q1 = document.querySelector('input[name="q1"]:checked');
-        const q2 = document.querySelector('input[name="q2"]:checked');
-        const q3 = document.querySelector('input[name="q3"]:checked');
-        const q4 = document.querySelector('input[name="q4"]:checked');
+    const scoutAdviceData = {
+        q1: {
+            2: "✅ <strong>ดีเยี่ยม (เต่าดำ):</strong> การมีอาคารสูงด้านหลังเปรียบเสมือนมีผู้ใหญ่คอยค้ำจุน ทำให้ร้านมีความน่าเชื่อถือและมั่นคง",
+            0: "⚠️ <strong>ข้อควรพิจารณา (เต่าดำ):</strong> ด้านหลังที่โล่งหรือต่ำกว่าอาจทำให้ขาดการสนับสนุน รู้สึกไม่มั่นคง <br><em>คำแนะนำ:</em> หากเป็นไปได้ ควรจัดวางตู้สูงใหญ่ไว้ด้านหลังสุดของร้าน หรือติดฟิล์มทึบที่กระจกหลังร้าน",
+            1: "🤔 <strong>ไม่แน่ใจ (เต่าดำ):</strong> ลองประเมินดูว่าด้านหลังให้ความรู้สึก 'ปกป้อง' หรือ 'เปิดโล่ง' ถ้าโล่งเกินไป อาจส่งผลคล้ายกับคำตอบ 'ไม่ใช่'"
+        },
+        q2: {
+            3: "✅ <strong>ดีเยี่ยม (หงส์แดง):</strong> หน้าร้านที่โล่งกว้างเปรียบเสมือนลานรับทรัพย์ ช่วยให้โชคลาภและโอกาสไหลเข้าสู่ร้านได้สะดวก",
+            0: "⚠️ <strong>ข้อควรพิจารณา (หงส์แดง):</strong> การมีสิ่งกีดขวางบดบังหน้าร้าน เช่น เสาไฟ ต้นไม้ใหญ่ หรือป้าย จะเป็นการปิดกั้นโชคลาภ <br><em>คำแนะนำ:</em> ควรจัดการเอาสิ่งกีดขวางออกไป หรือจัดหน้าร้านให้สว่างและโดดเด่นเพื่อดึงดูดพลังงานที่ดี",
+            1: "🤔 <strong>ไม่แน่ใจ (หงส์แดง):</strong> หากมีสิ่งกีดขวางอยู่บ้างแต่ไม่บังทั้งหมด ถือว่าพอใช้ได้ แต่ถ้าเป็นไปได้ ทำให้โล่งที่สุดจะดีกว่า"
+        },
+        q3: {
+            3: "✅ <strong>ดีเยี่ยม (มังกรเขียว):</strong> ด้านซ้ายที่สูงหรือมีการเคลื่อนไหว จะช่วยกระตุ้นพลังแห่งอำนาจ บารมี และส่งเสริมการค้าขายให้รุ่งเรือง",
+            0: "⚠️ <strong>ข้อควรพิจารณา (มังกรเขียว):</strong> ด้านซ้ายที่เตี้ยหรือนิ่งเกินไป อาจทำให้ร้านขาดพลังในการดึงดูดลูกค้าและโอกาสทางธุรกิจ <br><em>คำแนะนำ:</em> กระตุ้นฝั่งซ้ายของร้านด้วยการวางของที่มีการเคลื่อนไหว เช่น น้ำพุเล็กๆ หรือจัดให้มีแสงสว่างมากกว่าฝั่งขวา",
+            1: "🤔 <strong>ไม่แน่ใจ (มังกรเขียว):</strong> หากด้านซ้ายและขวามีความสูงพอๆ กัน ให้เน้นกระตุ้นพลังฝั่งซ้ายภายในร้านแทน"
+        },
+        q4: {
+            2: "✅ <strong>ดีเยี่ยม (เสือขาว):</strong> ด้านขวาที่สงบนิ่งและเตี้ยกว่า จะช่วยป้องกันปัญหา ข้อพิพาท หรือเรื่องวุ่นวายต่างๆ",
+            0: "⚠️ <strong>ข้อควรพิจารณา (เสือขาว):</strong> ด้านขวาที่สูงหรือเคลื่อนไหวมากกว่าด้านซ้าย อาจนำมาซึ่งการทะเลาะเบาะแว้ง ปัญหาจากลูกค้า หรือเรื่องจุกจิก <br><em>คำแนะนำ:</em> พยายามทำให้ฝั่งขวาของร้านสงบนิ่งที่สุด หลีกเลี่ยงการวางของที่เคลื่อนไหว และไม่ควรสว่างกว่าฝั่งซ้าย",
+            1: "🤔 <strong>ไม่แน่ใจ (เสือขาว):</strong> หากด้านขวามีการเคลื่อนไหวเล็กน้อย เช่น เป็นทางเดินเข้าซอย ถือว่ายังพอรับได้ แต่ไม่ควรเป็นถนนใหญ่"
+        }
+    };
 
-        if (!q1 || !q2 || !q3 || !q4) {
+    calculateScoutScoreBtn.addEventListener('click', () => {
+        const inputs = {
+            q1: document.querySelector('input[name="q1"]:checked'),
+            q2: document.querySelector('input[name="q2"]:checked'),
+            q3: document.querySelector('input[name="q3"]:checked'),
+            q4: document.querySelector('input[name="q4"]:checked')
+        };
+
+        if (Object.values(inputs).some(input => !input)) {
             alert('กรุณาตอบคำถามให้ครบทุกข้อ');
             return;
         }
 
-        const score = parseInt(q1.value) + parseInt(q2.value) + parseInt(q3.value) + parseInt(q4.value);
+        const score = Object.values(inputs).reduce((sum, input) => sum + parseInt(input.value), 0);
+        
         const scoutResult = document.getElementById('scout-result');
         const scoreText = document.getElementById('scout-score-text');
-        const adviceText = document.getElementById('scout-advice-text');
+        const adviceBreakdown = document.getElementById('scout-advice-breakdown');
         
+        adviceBreakdown.innerHTML = '';
+        for (const q in inputs) {
+            const value = inputs[q].value == '2' || inputs[q].value == '3' ? inputs[q].value : (inputs[q].value == '0' ? '0' : '1');
+            const key = q.toString();
+            // A bit of a hack to normalize radio button values to match the advice data keys
+            let adviceKey = inputs[q].value;
+            if (key === 'q1' || key === 'q4') adviceKey = adviceKey === '2' ? '2' : adviceKey;
+            if (key === 'q2' || key === 'q3') adviceKey = adviceKey === '3' ? '3' : adviceKey;
+
+            adviceBreakdown.innerHTML += `<p>${scoutAdviceData[key][adviceKey]}</p>`;
+        }
+
         scoreText.textContent = `คะแนนชัยภูมิ: ${score}/10`;
         if (score >= 8) {
-            adviceText.textContent = "เป็นทำเลที่ดีเยี่ยม มีพลังงานสนับสนุนรอบด้าน เหมาะแก่การเปิดร้านอย่างยิ่ง";
             scoreText.className = 'text-xl font-bold text-green-600';
         } else if (score >= 5) {
-            adviceText.textContent = "เป็นทำเลที่พอใช้ได้ มีจุดดีและจุดที่ต้องพิจารณาปรับแก้ แต่โดยรวมยังสามารถเปิดได้";
-             scoreText.className = 'text-xl font-bold text-yellow-600';
+            scoreText.className = 'text-xl font-bold text-yellow-600';
         } else {
-            adviceText.textContent = "เป็นทำเลที่ควรพิจารณาอย่างรอบคอบ มีจุดที่ขัดกับหลักฮวงจุ้ยหลายข้อ อาจต้องปรับแก้เยอะ";
-             scoreText.className = 'text-xl font-bold text-red-600';
+            scoreText.className = 'text-xl font-bold text-red-600';
         }
         scoutResult.classList.remove('hidden');
     });
@@ -358,7 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const layoutGrid = document.getElementById('layout-grid');
-    const items = document.querySelectorAll('.drag-item');
+    const itemPalette = document.getElementById('item-palette');
+    const trashCan = document.getElementById('trash-can');
     const shopDirectionSelect = document.getElementById('shop-direction');
     let draggedItem = null;
 
@@ -366,28 +419,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const directionMap = { 'S': { 9: 'S', 1: 'N', 3: 'E', 7: 'W', 4: 'SE', 2: 'SW', 8: 'NE', 6: 'NW', 5: 'Center' }, 'N': { 1: 'S', 9: 'N', 7: 'E', 3: 'W', 2: 'SE', 4: 'SW', 6: 'NE', 8: 'NW', 5: 'Center' }, 'E': { 3: 'S', 7: 'N', 9: 'E', 1: 'W', 8: 'SE', 6: 'SW', 2: 'NE', 4: 'NW', 5: 'Center' }, 'W': { 7: 'S', 3: 'N', 1: 'E', 9: 'W', 6: 'SE', 8: 'SW', 4: 'NE', 2: 'NW', 5: 'Center' }, 'SE': { 4: 'S', 6: 'N', 2: 'E', 8: 'W', 3: 'SE', 5: 'SW', 9: 'NE', 7: 'NW', 5: 'Center' }, 'NW': { 6: 'S', 4: 'N', 8: 'E', 2: 'W', 7: 'SE', 9: 'SW', 1: 'NE', 3: 'NW', 5: 'Center' }, 'SW': { 2: 'S', 8: 'N', 6: 'E', 4: 'W', 5: 'SE', 3: 'SW', 7: 'NE', 1: 'NW', 5: 'Center' }, 'NE': { 8: 'S', 2: 'N', 4: 'E', 6: 'W', 9: 'SE', 1: 'SW', 3: 'NE', 5: 'NW', 5: 'Center' } };
     const elementRelations = { promote: { water: "wood", wood: "fire", fire: "earth", earth: "metal", metal: "water" }, control: { water: "fire", fire: "metal", metal: "wood", wood: "earth", earth: "water" } };
     
-    const frontCellMap = { 'S': [8, 1, 6], 'N': [4, 9, 2], 'E': [2, 7, 6], 'W': [4, 3, 8], 'SE': [1, 6, 7], 'SW': [8, 3, 4], 'NE': [2, 9, 4], 'NW': [8, 1, 2] };
+    function getFrontCells(direction) {
+        switch (direction) {
+            case 'N': return [4, 9, 2];
+            case 'S': return [8, 1, 6];
+            case 'W': return [4, 3, 8];
+            case 'E': return [2, 7, 6];
+            case 'NE': return [4, 9, 3];
+            case 'NW': return [9, 2, 7];
+            case 'SE': return [8, 3, 4];
+            case 'SW': return [1, 6, 7];
+        }
+        return [];
+    }
+    
+    function addDragStartListener(el) {
+         el.addEventListener('dragstart', (e) => { 
+            draggedItem = e.target;
+            setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
+        });
+        el.addEventListener('dragend', (e) => {
+            e.target.style.opacity = '1';
+            draggedItem = null;
+        });
+    }
 
     function generateGrid() {
         layoutGrid.innerHTML = '';
         const direction = shopDirectionSelect.value;
-        const frontCells = frontCellMap[direction];
+        const frontCells = getFrontCells(direction);
         const loShuGridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
-        
+
         loShuGridOrder.forEach(num => {
             const cell = document.createElement('div');
-            cell.classList.add('drop-zone', 'bg-stone-50', 'border', 'border-stone-200', 'p-2', 'flex', 'flex-col', 'items-center', 'justify-center', 'relative', 'gap-1');
+            cell.classList.add('drop-zone', 'bg-stone-50', 'border', 'border-stone-200', 'p-2', 'flex', 'flex-col', 'items-center', 'justify-center', 'relative', 'gap-1', 'text-center');
             cell.dataset.loShu = num;
-
-            const info = document.createElement('div');
-            info.classList.add('absolute', 'top-1', 'left-1', 'text-xs', 'text-stone-400');
-            const zoneDir = directionMap[direction][num];
-            info.textContent = `${zoneDir}`;
-            cell.appendChild(info);
+            
+            const zoneInfo = loShuBase[num];
+            const nameEl = document.createElement('span');
+            nameEl.className = 'text-xs font-semibold text-stone-700';
+            nameEl.textContent = zoneInfo.name;
+            cell.appendChild(nameEl);
 
             if (frontCells.includes(num)) {
                 const indicator = document.createElement('div');
-                indicator.classList.add('front-indicator');
+                indicator.className = 'front-indicator rounded-md';
                 indicator.title = 'หน้าร้าน';
                 cell.appendChild(indicator);
             }
@@ -397,15 +473,15 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.addEventListener('drop', (e) => {
                 e.preventDefault();
                 cell.classList.remove('drag-over');
-                if (draggedItem) {
+                if (draggedItem && !cell.querySelector('.placed-item')) { // Allow drop only if cell is empty
                     if (draggedItem.dataset.item === 'door') {
                         const existingDoor = layoutGrid.querySelector('.placed-item[data-item="door"]');
-                        if (existingDoor) existingDoor.remove();
+                        if (existingDoor) existingDoor.parentElement.removeChild(existingDoor);
                     }
                     const clone = draggedItem.cloneNode(true);
                     clone.classList.remove('drag-item');
                     clone.classList.add('placed-item');
-                    clone.id = '';
+                    addDragStartListener(clone);
                     cell.appendChild(clone);
                 }
             });
@@ -413,12 +489,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    items.forEach(item => {
-        item.addEventListener('dragstart', (e) => { draggedItem = e.target; });
+    itemPalette.querySelectorAll('.drag-item').forEach(item => {
+        addDragStartListener(item);
     });
     
-    shopDirectionSelect.addEventListener('change', generateGrid);
+    trashCan.addEventListener('dragover', e => { e.preventDefault(); trashCan.classList.add('drag-over'); });
+    trashCan.addEventListener('dragleave', () => { trashCan.classList.remove('drag-over'); });
+    trashCan.addEventListener('drop', e => {
+        e.preventDefault();
+        trashCan.classList.remove('drag-over');
+        if (draggedItem && draggedItem.classList.contains('placed-item')) {
+            draggedItem.parentElement.removeChild(draggedItem);
+        }
+    });
 
+    
+    shopDirectionSelect.addEventListener('change', generateGrid);
     document.getElementById('reset-layout').addEventListener('click', generateGrid);
 
     document.getElementById('analyze-layout').addEventListener('click', () => {
@@ -426,7 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const resultContainer = document.getElementById('result-container');
         const analysisResult = document.getElementById('analysis-result');
         resultContainer.innerHTML = '';
-
         const currentMap = directionMap[selectedDirection];
 
         layoutGrid.childNodes.forEach(cell => {
@@ -435,30 +520,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const zoneElement = zoneInfo.element;
             const itemsInCell = cell.querySelectorAll('.placed-item');
             const zoneDir = currentMap[loShuNum];
+            const elementInThai = (el) => el.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง');
 
-            let advice = `<div class="p-4 bg-stone-100 rounded-lg">
-                <h4 class="font-bold">โซนทิศ ${zoneDir} (${zoneInfo.name}) - ธาตุ${zoneElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง')}</h4>`;
+            let advice = `<div class="p-4 bg-stone-100 rounded-lg"><h4 class="font-bold">โซนทิศ ${zoneDir} (${zoneInfo.name}) - ธาตุ${elementInThai(zoneElement)}</h4>`;
 
             if (itemsInCell.length === 0) {
-                advice += `<p class="text-stone-600">โซนนี้ว่างอยู่ ลองพิจารณาวางของที่ส่งเสริมธาตุ${zoneElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง')} เช่น ${getSuggestion(zoneElement)}</p>`;
+                advice += `<p class="text-stone-600">โซนนี้ว่างอยู่ ลองพิจารณาวางของที่ส่งเสริมธาตุ${elementInThai(zoneElement)} เช่น ${getSuggestion(zoneElement)}</p>`;
             } else {
                 itemsInCell.forEach(item => {
                     const itemName = item.textContent;
                     const itemElement = item.dataset.element;
-                    const itemElementName = itemElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง');
 
                     if (itemElement === "none") {
                          advice += `<p>✅ <strong>${itemName}:</strong> เป็นกลาง ไม่ส่งผลกระทบต่อธาตุในโซนนี้</p>`;
                     } else if (itemElement === zoneElement) {
-                        advice += `<p class="text-green-700">🟢 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ยอดเยี่ยม! การวางของธาตุเดียวกับโซนเป็นการส่งเสริมโดยตรง</p>`;
-                    } else if (elementRelations.promote[zoneElement] === itemElement) {
-                        advice += `<p class="text-blue-700">🔵 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ดี! เป็นการส่งเสริมพลังงานของโซนนี้ (โซนให้กำเนิดสิ่งของ)</p>`;
+                        advice += `<p class="text-green-700">🟢 <strong>${itemName} (ธาตุ${elementInThai(itemElement)}):</strong> ยอดเยี่ยม! การวางของธาตุเดียวกับโซนเป็นการส่งเสริมโดยตรง</p>`;
                     } else if (elementRelations.promote[itemElement] === zoneElement) {
-                         advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ควรระวัง! ของชิ้นนี้ดึงพลังงานไปจากโซน (โซนให้กำเนิดของ) ทำให้โซนอ่อนแอลง</p>`;
+                        advice += `<p class="text-blue-700">🔵 <strong>${itemName} (ธาตุ${elementInThai(itemElement)}):</strong> ดี! เป็นการส่งเสริมพลังงานของโซนนี้ (สิ่งของให้กำเนิดโซน)</p>`;
+                    } else if (elementRelations.promote[zoneElement] === itemElement) {
+                         advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${elementInThai(itemElement)}):</strong> ควรระวัง! ของชิ้นนี้ดึงพลังงานไปจากโซน (ทำให้โซนอ่อนแอลง)</p>`;
                     } else if (elementRelations.control[itemElement] === zoneElement) {
-                        advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ควรระวัง! เป็นการพิฆาต (ทำลาย) พลังงานของโซนนี้ อาจก่อให้เกิดปัญหาได้</p>`;
+                        advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${elementInThai(itemElement)}):</strong> ควรระวัง! เป็นการพิฆาต (ทำลาย) พลังงานของโซนนี้ อาจก่อให้เกิดปัญหาได้</p>`;
                     } else if (elementRelations.control[zoneElement] === itemElement) {
-                        advice += `<p class="text-yellow-700">🟡 <strong>${itemName} (ธาตุ${itemElementName}):</strong> พอใช้ได้ โซนนี้ควบคุมสิ่งของชิ้นนี้อยู่ ทำให้ไม่ส่งผลเสีย แต่ก็ไม่ส่งเสริม</p>`;
+                        advice += `<p class="text-yellow-700">🟡 <strong>${itemName} (ธาตุ${elementInThai(itemElement)}):</strong> พอใช้ได้ โซนนี้ควบคุมสิ่งของชิ้นนี้อยู่ ทำให้ไม่ส่งผลเสีย แต่ก็ไม่ส่งเสริม</p>`;
                     }
                 });
             }
@@ -483,23 +567,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            
             const imgProps= pdf.getImageProperties(imgData);
             const ratio = imgProps.height / imgProps.width;
-            
             const canvasWidth = pdfWidth - 20; 
             const canvasHeight = canvasWidth * ratio;
-
             let heightLeft = canvasHeight;
             let position = 15; 
-            
-            pdf.setFont('Sarabun-Regular', 'normal');
             
             pdf.addImage(imgData, 'PNG', 10, position, canvasWidth, canvasHeight);
             heightLeft -= (pdfHeight-20);
 
             while (heightLeft > 0) {
-              position = - (canvasHeight - heightLeft);
+              position = - (canvasHeight - heightLeft) + 15;
               pdf.addPage();
               pdf.addImage(imgData, 'PNG', 10, position, canvasWidth, canvasHeight);
               heightLeft -= pdfHeight;
@@ -531,5 +610,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-
 
