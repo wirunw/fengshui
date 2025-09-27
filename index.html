@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผู้ช่วยจัดฮวงจุ้ยร้านยา (Pharma Feng Shui Assistant)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Harmony (Stone, Taupe, with subtle elemental accents) -->
+    <!-- Application Structure Plan: A single-page application with a top navigation bar. A new 'Home' module serves as an infographic landing page, summarizing key concepts. The other modules are: 1. Location Scout (Checklist), 2. Layout Analyzer (Interactive Grid), 3. Owner's Profile (Selector), 4. Knowledge Base (Accordion). This modular structure, starting with an educational home page, guides the user from theory to practice. -->
+    <!-- Visualization & Content Choices: The core interaction remains the HTML/CSS Grid-based 'Layout Analyzer' with improved drag-and-drop functionality (draggable=true added). Items are now more pharmacy-specific. A visual indicator for the "shop front" has been added, dynamically updated with JS. The new Home module uses a flexbox/grid layout to present information as an infographic, using icons and colored blocks instead of plain text, enhancing visual appeal and comprehension. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #F5F5F4; 
+        }
+        .nav-button {
+            transition: all 0.3s;
+        }
+        .nav-button.active {
+            background-color: #57534E; 
+            color: #FFFFFF;
+        }
+        .module {
+            display: none;
+        }
+        .module.active {
+            display: block;
+        }
+        .drag-item {
+            cursor: grab;
+            user-select: none;
+        }
+        .drop-zone {
+            transition: background-color 0.3s;
+            min-height: 100px;
+        }
+        .drop-zone.drag-over {
+            background-color: #D6D3D1; 
+        }
+        .drop-zone .placed-item {
+            cursor: default;
+        }
+        .front-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #F97316;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-2xl font-bold text-stone-700 mb-4 sm:mb-0">ผู้ช่วยจัดฮวงจุ้ยร้านยา ⚕️</h1>
+            <nav id="main-nav" class="flex flex-wrap justify-center gap-2">
+                <button data-module="home" class="nav-button active px-4 py-2 rounded-lg bg-stone-200 hover:bg-stone-300">หน้าหลัก</button>
+                <button data-module="location-scout" class="nav-button px-4 py-2 rounded-lg bg-stone-200 hover:bg-stone-300">ประเมินทำเล</button>
+                <button data-module="layout-analyzer" class="nav-button px-4 py-2 rounded-lg bg-stone-200 hover:bg-stone-300">วิเคราะห์แปลนร้าน</button>
+                <button data-module="owner-profile" class="nav-button px-4 py-2 rounded-lg bg-stone-200 hover:bg-stone-300">โปรไฟล์เจ้าของ</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 md:p-8">
+
+        <section id="home" class="module active">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-center text-stone-700">ยินดีต้อนรับสู่ศาสตร์แห่งฮวงจุ้ยร้านยา</h2>
+                <p class="mb-8 text-stone-600 text-center">สรุปหลักการสำคัญใน 1 หน้า เพื่อความเข้าใจก่อนเริ่มใช้งาน</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    
+                    <div class="lg:col-span-1">
+                         <h3 class="text-xl font-bold text-center text-stone-600 border-b-2 border-stone-300 pb-2 mb-4">หลักชัยภูมิ 4 สัตว์เทพ</h3>
+                         <div class="grid grid-cols-3 grid-rows-3 gap-2 text-center aspect-square">
+                            <div></div>
+                            <div class="p-2 bg-stone-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐢</p>
+                                <p class="font-semibold text-xs">เต่าดำ (หลัง)</p>
+                                <p class="text-xs text-stone-600 mt-1">ความมั่นคง, การสนับสนุน</p>
+                            </div>
+                            <div></div>
+                            <div class="p-2 bg-green-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐲</p>
+                                <p class="font-semibold text-xs">มังกรเขียว (ซ้าย)</p>
+                                <p class="text-xs text-stone-600 mt-1">อำนาจ, บารมี, การค้า</p>
+                            </div>
+                            <div class="p-2 bg-yellow-100 rounded-lg flex flex-col justify-center items-center">
+                                <p class="text-4xl">⚕️</p>
+                                <p class="font-bold text-xs">ร้านยา</p>
+                            </div>
+                            <div class="p-2 bg-gray-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐅</p>
+                                <p class="font-semibold text-xs">เสือขาว (ขวา)</p>
+                                <p class="text-xs text-stone-600 mt-1">การป้องกัน, คุ้มครอง</p>
+                            </div>
+                            <div></div>
+                             <div class="p-2 bg-red-100 rounded-lg flex flex-col justify-center">
+                                <p class="text-2xl">🐦</p>
+                                <p class="font-semibold text-xs">หงส์แดง (หน้า)</p>
+                                <p class="text-xs text-stone-600 mt-1">โอกาส, โชคลาภ</p>
+                            </div>
+                            <div></div>
+                         </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-center text-stone-600 border-b-2 border-stone-300 pb-2">วงจรเบญจธาตุ (5 Elements)</h3>
+                        <div class="p-4 bg-stone-100 rounded-lg text-center">
+                            <p class="font-semibold">วงจรก่อเกิด (ส่งเสริม):</p>
+                            <p>น้ำ → ไม้ → ไฟ → ดิน → ทอง → น้ำ</p>
+                            <p class="font-semibold mt-4">วงจรพิฆาต (ควบคุม):</p>
+                            <p>น้ำ ⚔️ ไฟ ⚔️ ทอง ⚔️ ไม้ ⚔️ ดิน ⚔️ น้ำ</p>
+                        </div>
+                        <div class="p-4 bg-stone-100 rounded-lg text-xs space-y-2">
+                             <p><strong>ธาตุน้ำ:</strong> <span class="inline-block w-3 h-3 bg-blue-500 rounded-full"></span><span class="inline-block w-3 h-3 bg-black rounded-full"></span> สีฟ้า, ดำ, น้ำเงิน / รูปทรงคลื่น</p>
+                             <p><strong>ธาตุไม้:</strong> <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span> สีเขียว, น้ำตาลอ่อน / ทรงสูง</p>
+                             <p><strong>ธาตุไฟ:</strong> <span class="inline-block w-3 h-3 bg-red-500 rounded-full"></span><span class="inline-block w-3 h-3 bg-pink-400 rounded-full"></span> สีแดง, ชมพู, ม่วง / ทรงสามเหลี่ยม</p>
+                             <p><strong>ธาตุดิน:</strong> <span class="inline-block w-3 h-3 bg-yellow-400 rounded-full"></span><span class="inline-block w-3 h-3 bg-amber-800 rounded-full"></span> สีเหลือง, น้ำตาล / ทรงสี่เหลี่ยมจัตุรัส</p>
+                             <p><strong>ธาตุทอง:</strong> <span class="inline-block w-3 h-3 bg-gray-300 rounded-full"></span><span class="inline-block w-3 h-3 bg-white border rounded-full"></span> สีขาว, เทา, เงิน, ทอง / ทรงกลม</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-center text-stone-600 border-b-2 border-stone-300 pb-2">ผังโหลวสู 9 ทิศ</h3>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="p-2 bg-green-100 rounded">4: SE<br>การเงิน</div>
+                            <div class="p-2 bg-red-100 rounded">9: S<br>ชื่อเสียง</div>
+                            <div class="p-2 bg-yellow-100 rounded">2: SW<br>ความรัก</div>
+                            <div class="p-2 bg-green-100 rounded">3: E<br>สุขภาพ</div>
+                            <div class="p-2 bg-yellow-100 rounded">5: กลาง<br>สมดุล</div>
+                            <div class="p-2 bg-gray-100 rounded">7: W<br>บริวาร</div>
+                            <div class="p-2 bg-yellow-100 rounded">8: NE<br>ความรู้</div>
+                            <div class="p-2 bg-blue-100 rounded">1: N<br>การงาน</div>
+                            <div class="p-2 bg-gray-100 rounded">6: NW<br>อุปถัมภ์</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="location-scout" class="module">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-stone-700">Module 1: Checklist ประเมินทำเล (Location Scout)</h2>
+                <p class="mb-6 text-stone-600">ใช้ Checklist นี้เพื่อประเมินศักยภาพของทำเลร้านใหม่ตามหลักชัยภูมิ 4 สัตว์เทพ</p>
+                <div id="scout-checklist" class="space-y-4">
+                    <div>
+                        <p class="font-semibold">1. ด้านหลัง (เต่าดำ): ด้านหลังร้านมีอาคารที่สูงกว่าหรือกำแพงทึบที่ให้ความรู้สึกมั่นคงหรือไม่?</p>
+                        <div class="flex gap-4 mt-2"><label><input type="radio" name="q1" value="2"> ใช่</label><label><input type="radio" name="q1" value="0"> ไม่ใช่</label><label><input type="radio" name="q1" value="1"> ไม่แน่ใจ</label></div>
+                    </div>
+                    <div>
+                        <p class="font-semibold">2. ด้านหน้า (หงส์แดง): หน้าร้านมีพื้นที่โล่งกว้าง ไม่มีสิ่งกีดขวางบดบังทัศนียภาพใช่หรือไม่?</p>
+                        <div class="flex gap-4 mt-2"><label><input type="radio" name="q2" value="3"> ใช่</label><label><input type="radio" name="q2" value="0"> ไม่ใช่</label><label><input type="radio" name="q2" value="1"> ไม่แน่ใจ</label></div>
+                    </div>
+                    <div>
+                        <p class="font-semibold">3. ด้านซ้าย (มังกรเขียว): เมื่อมองออกจากร้าน ฝั่งซ้ายมือมีอาคารที่สูงกว่าฝั่งขวา หรือมีการเคลื่อนไหวหรือไม่?</p>
+                        <div class="flex gap-4 mt-2"><label><input type="radio" name="q3" value="3"> ใช่</label><label><input type="radio" name="q3" value="0"> ไม่ใช่</label><label><input type="radio" name="q3" value="1"> ไม่แน่ใจ</label></div>
+                    </div>
+                    <div>
+                        <p class="font-semibold">4. ด้านขวา (เสือขาว): เมื่อมองออกจากร้าน ฝั่งขวามือมีความสงบนิ่งและดูเตี้ยกว่าฝั่งซ้ายใช่หรือไม่?</p>
+                        <div class="flex gap-4 mt-2"><label><input type="radio" name="q4" value="2"> ใช่</label><label><input type="radio" name="q4" value="0"> ไม่ใช่</label><label><input type="radio" name="q4" value="1"> ไม่แน่ใจ</label></div>
+                    </div>
+                </div>
+                <button id="calculate-scout-score" class="mt-6 bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition">ประเมินคะแนน</button>
+                <div id="scout-result" class="mt-6 p-4 bg-stone-100 rounded-lg hidden">
+                    <h3 class="font-bold text-lg">ผลการประเมิน:</h3>
+                    <p id="scout-score-text" class="text-xl"></p>
+                    <p id="scout-advice-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="layout-analyzer" class="module">
+             <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-stone-700">Module 2: นักวิเคราะห์แปลนร้าน (Layout Analyzer)</h2>
+                <p class="mb-6 text-stone-600">จัดวางผังร้านของคุณ เพื่อรับคำแนะนำการปรับฮวงจุ้ยตามหลักเบญจธาตุและผังโหลวสู</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-4">
+                        <div>
+                            <label for="shop-direction" class="font-semibold block mb-2">1. หน้าร้านของคุณหันไปทางทิศใด?</label>
+                            <select id="shop-direction" class="w-full p-2 border rounded-lg bg-white">
+                                <option value="N">เหนือ (N)</option>
+                                <option value="S" selected>ใต้ (S)</option>
+                                <option value="E">ตะวันออก (E)</option>
+                                <option value="W">ตะวันตก (W)</option>
+                                <option value="NE">ตะวันออกเฉียงเหนือ (NE)</option>
+                                <option value="SE">ตะวันออกเฉียงใต้ (SE)</option>
+                                <option value="SW">ตะวันตกเฉียงใต้ (SW)</option>
+                                <option value="NW">ตะวันตกเฉียงเหนือ (NW)</option>
+                            </select>
+                        </div>
+                        <div>
+                           <h3 class="font-semibold mb-2">2. ลากไอคอนไปวางบนแปลนร้าน</h3>
+                           <div id="item-palette" class="grid grid-cols-2 gap-2 p-2 bg-stone-100 rounded-lg text-sm">
+                                <div draggable="true" data-item="door" data-element="none" class="drag-item p-2 bg-white rounded shadow text-center">🚪 ประตูทางเข้า</div>
+                                <div draggable="true" data-item="counter" data-element="earth" class="drag-item p-2 bg-white rounded shadow text-center">🧾 เคาน์เตอร์ยา</div>
+                                <div draggable="true" data-item="shelf-wood" data-element="wood" class="drag-item p-2 bg-white rounded shadow text-center">🌲 ชั้นวางไม้</div>
+                                <div draggable="true" data-item="shelf-metal" data-element="metal" class="drag-item p-2 bg-white rounded shadow text-center">🔩 ชั้นวางเหล็ก</div>
+                                <div draggable="true" data-item="lock-cabinet" data-element="metal" class="drag-item p-2 bg-white rounded shadow text-center">🔐 ตู้ยาควบคุม</div>
+                                <div draggable="true" data-item="sofa" data-element="earth" class="drag-item p-2 bg-white rounded shadow text-center">🛋️ ที่นั่งรอ</div>
+                                <div draggable="true" data-item="scale" data-element="metal" class="drag-item p-2 bg-white rounded shadow text-center">⚖️ เครื่องชั่ง</div>
+                                <div draggable="true" data-item="light" data-element="fire" class="drag-item p-2 bg-white rounded shadow text-center">💡 ป้ายไฟ/แสง</div>
+                           </div>
+                        </div>
+                         <div class="flex gap-2">
+                             <button id="analyze-layout" class="w-full mt-4 bg-stone-600 text-white px-6 py-2 rounded-lg hover:bg-stone-700 transition">วิเคราะห์แปลน</button>
+                             <button id="reset-layout" class="w-full mt-4 bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition">ล้างข้อมูล</button>
+                         </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <div id="layout-grid" class="grid grid-cols-3 gap-1 bg-stone-300 rounded-lg p-1 aspect-square">
+                        </div>
+                    </div>
+                </div>
+                 <div id="analysis-result" class="mt-6 hidden">
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">ผลการวิเคราะห์แปลนร้าน:</h3>
+                        <button id="export-pdf" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm">📄 Export ผลเป็น PDF</button>
+                     </div>
+                     <div id="result-container" class="space-y-4"></div>
+                 </div>
+            </div>
+        </section>
+
+        <section id="owner-profile" class="module">
+             <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-1 text-stone-700">Module 3: โปรไฟล์เจ้าของร้าน (Owner's Profile)</h2>
+                <p class="mb-6 text-stone-600">เลือกปีนักษัตรของคุณเพื่อรับคำแนะนำในการเสริมพลังงานส่วนบุคคล</p>
+                <label for="zodiac-select" class="font-semibold block mb-2">กรุณาเลือกปีนักษัตรเกิดของคุณ:</label>
+                <select id="zodiac-select" class="w-full max-w-xs p-2 border rounded-lg bg-white">
+                    <option value="">-- เลือกปีนักษัตร --</option>
+                    <option value="rat">ชวด (หนู)</option>
+                    <option value="ox">ฉลู (วัว)</option>
+                    <option value="tiger">ขาล (เสือ)</option>
+                    <option value="rabbit">เถาะ (กระต่าย)</option>
+                    <option value="dragon">มะโรง (มังกร)</option>
+                    <option value="snake">มะเส็ง (งู)</option>
+                    <option value="horse">มะเมีย (ม้า)</option>
+                    <option value="goat">มะแม (แพะ)</option>
+                    <option value="monkey">วอก (ลิง)</option>
+                    <option value="rooster">ระกา (ไก่)</option>
+                    <option value="dog">จอ (สุนัข)</option>
+                    <option value="pig">กุน (หมู)</option>
+                </select>
+                <div id="zodiac-result" class="mt-6 p-4 bg-stone-100 rounded-lg hidden">
+                    <h3 id="zodiac-name" class="font-bold text-lg"></h3>
+                    <p id="zodiac-element"></p>
+                    <p id="zodiac-support-element"></p>
+                    <p id="zodiac-colors"></p>
+                    <p id="zodiac-advice" class="mt-2"></p>
+                </div>
+                <p class="mt-8 text-sm text-center text-stone-600">
+                    หากต้องการตรวจสอบโดยละเอียด เข้าไปใช้บริการได้ที่ <a href="https://bazi.fengshuix.com/" target="_blank" class="text-blue-600 hover:underline">https://bazi.fengshuix.com/</a>
+                </p>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="text-center p-4 mt-8 text-xs text-stone-500">
+        <p>ออกแบบโดย เภสัชกรวิรุณ เวชศิริ</p>
+        <p><strong>หมายเหตุ:</strong> ผลลัพธ์เป็นเพียง Prototype เบื้องต้น และให้ใช้วิจารณญาณ</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mainNav = document.getElementById('main-nav');
+    const modules = document.querySelectorAll('.module');
+    const navButtons = document.querySelectorAll('.nav-button');
+
+    function switchModule(moduleName) {
+        navButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.module === moduleName);
+        });
+        modules.forEach(module => {
+            module.classList.toggle('active', module.id === moduleName);
+        });
+    }
+
+    mainNav.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            switchModule(e.target.dataset.module);
+        }
+    });
+
+    switchModule('home');
+
+    const calculateScoutScoreBtn = document.getElementById('calculate-scout-score');
+    calculateScoutScoreBtn.addEventListener('click', () => {
+        const q1 = document.querySelector('input[name="q1"]:checked');
+        const q2 = document.querySelector('input[name="q2"]:checked');
+        const q3 = document.querySelector('input[name="q3"]:checked');
+        const q4 = document.querySelector('input[name="q4"]:checked');
+
+        if (!q1 || !q2 || !q3 || !q4) {
+            alert('กรุณาตอบคำถามให้ครบทุกข้อ');
+            return;
+        }
+
+        const score = parseInt(q1.value) + parseInt(q2.value) + parseInt(q3.value) + parseInt(q4.value);
+        const scoutResult = document.getElementById('scout-result');
+        const scoreText = document.getElementById('scout-score-text');
+        const adviceText = document.getElementById('scout-advice-text');
+        
+        scoreText.textContent = `คะแนนชัยภูมิ: ${score}/10`;
+        if (score >= 8) {
+            adviceText.textContent = "เป็นทำเลที่ดีเยี่ยม มีพลังงานสนับสนุนรอบด้าน เหมาะแก่การเปิดร้านอย่างยิ่ง";
+            scoreText.className = 'text-xl font-bold text-green-600';
+        } else if (score >= 5) {
+            adviceText.textContent = "เป็นทำเลที่พอใช้ได้ มีจุดดีและจุดที่ต้องพิจารณาปรับแก้ แต่โดยรวมยังสามารถเปิดได้";
+             scoreText.className = 'text-xl font-bold text-yellow-600';
+        } else {
+            adviceText.textContent = "เป็นทำเลที่ควรพิจารณาอย่างรอบคอบ มีจุดที่ขัดกับหลักฮวงจุ้ยหลายข้อ อาจต้องปรับแก้เยอะ";
+             scoreText.className = 'text-xl font-bold text-red-600';
+        }
+        scoutResult.classList.remove('hidden');
+    });
+
+    const zodiacSelect = document.getElementById('zodiac-select');
+    const zodiacResult = document.getElementById('zodiac-result');
+    const zodiacData = {
+        rat: { name: "ปีชวด (หนู)", element: "น้ำ", support: "ทอง", colors: "ขาว, เงิน, ทอง", advice: "เสริมพลังด้วยของตกแต่งทรงกลมที่เป็นโลหะ จะช่วยส่งเสริมสติปัญญาและการตัดสินใจ" },
+        ox: { name: "ปีฉลู (วัว)", element: "ดิน", support: "ไฟ", colors: "แดง, ชมพู, ม่วง", advice: "วางโคมไฟสวยๆ หรือของสีแดงในห้องทำงาน จะช่วยเพิ่มพลังและความมั่นคง" },
+        tiger: { name: "ปีขาล (เสือ)", element: "ไม้", support: "น้ำ", colors: "ฟ้า, น้ำเงิน, ดำ", advice: "วางน้ำพุเล็กๆ หรือภาพเกี่ยวกับน้ำ จะช่วยส่งเสริมการเติบโตและบารมี" },
+        rabbit: { name: "ปีเถาะ (กระต่าย)", element: "ไม้", support: "น้ำ", colors: "ฟ้า, น้ำเงิน, ดำ", advice: "ตกแต่งด้วยของโทนสีฟ้า หรือรูปทรงอิสระ จะช่วยให้รู้สึกผ่อนคลายและมีความคิดสร้างสรรค์" },
+        dragon: { name: "ปีมะโรง (มังกร)", element: "ดิน", support: "ไฟ", colors: "แดง, ชมพู, ม่วง", advice: "ใช้แสงไฟสีวอร์มไวท์ หรือของตกแต่งสีสดใส จะช่วยกระตุ้นพลังอำนาจและความสำเร็จ" },
+        snake: { name: "ปีมะเส็ง (งู)", element: "ไฟ", support: "ไม้", colors: "เขียว, น้ำตาลอ่อน", advice: "วางต้นไม้เล็กๆ หรือเฟอร์นิเจอร์ไม้ในที่ทำงาน จะช่วยเสริมเรื่องชื่อเสียงและการยอมรับ" },
+        horse: { name: "ปีมะเมีย (ม้า)", element: "ไฟ", support: "ไม้", colors: "เขียว, น้ำตาลอ่อน", advice: "ใช้ของตกแต่งที่ทำจากไม้ หรือสีเขียว จะช่วยเสริมพลังให้กระตือรือร้นและมีชีวิตชีวา" },
+        goat: { name: "ปีมะแม (แพะ)", element: "ดิน", support: "ไฟ", colors: "แดง, ชมพู, ม่วง", advice: "เพิ่มแสงสว่าง หรือใช้ของตกแต่งสีแดง จะช่วยเสริมความสัมพันธ์ที่ดีกับลูกค้าและบริวาร" },
+        monkey: { name: "ปีวอก (ลิง)", element: "ทอง", support: "ดิน", colors: "เหลือง, น้ำตาล, ครีม", advice: "ใช้ของตกแต่งที่ทำจากเซรามิก หรือโทนสีเอิร์ธโทน จะช่วยเสริมความฉลาดและไหวพริบ" },
+        rooster: { name: "ปีระกา (ไก่)", element: "ทอง", support: "ดิน", colors: "เหลือง, น้ำตาล, ครีม", advice: "ตกแต่งด้วยหินสวยๆ หรือของสีเหลือง/น้ำตาล จะช่วยเสริมหลักการและความน่าเชื่อถือ" },
+        dog: { name: "ปีจอ (สุนัข)", element: "ดิน", support: "ไฟ", colors: "แดง, ชมพู, ม่วง", advice: "ใช้โคมไฟ หรือของตกแต่งสีแดง จะช่วยเพิ่มความมั่นคงและเสริมบารมี" },
+        pig: { name: "กุน (หมู)", element: "น้ำ", support: "ทอง", colors: "ขาว, เงิน, ทอง", advice: "เสริมด้วยของตกแต่งที่เป็นโลหะแวววาว หรือสีขาว จะช่วยดึงดูดโอกาสและความช่วยเหลือ" }
+    };
+
+    zodiacSelect.addEventListener('change', (e) => {
+        const selectedZodiac = e.target.value;
+        if (selectedZodiac) {
+            const data = zodiacData[selectedZodiac];
+            document.getElementById('zodiac-name').textContent = data.name;
+            document.getElementById('zodiac-element').textContent = `ธาตุประจำตัว: ${data.element}`;
+            document.getElementById('zodiac-support-element').textContent = `ธาตุส่งเสริม: ${data.support}`;
+            document.getElementById('zodiac-colors').textContent = `สีมงคล: ${data.colors}`;
+            document.getElementById('zodiac-advice').textContent = `คำแนะนำ: ${data.advice}`;
+            zodiacResult.classList.remove('hidden');
+        } else {
+            zodiacResult.classList.add('hidden');
+        }
+    });
+
+    const layoutGrid = document.getElementById('layout-grid');
+    const items = document.querySelectorAll('.drag-item');
+    const shopDirectionSelect = document.getElementById('shop-direction');
+    let draggedItem = null;
+
+    const loShuBase = { 1: { name: "การงาน", element: "water" }, 2: { name: "ความสัมพันธ์", element: "earth" }, 3: { name: "สุขภาพ", element: "wood" }, 4: { name: "ความมั่งคั่ง", element: "wood" }, 5: { name: "ศูนย์กลาง", element: "earth" }, 6: { name: "ผู้อุปถัมภ์", element: "metal" }, 7: { name: "บริวาร", element: "metal" }, 8: { name: "ความรู้", element: "earth" }, 9: { name: "ชื่อเสียง", element: "fire" } };
+    const directionMap = { 'S': { 9: 'S', 1: 'N', 3: 'E', 7: 'W', 4: 'SE', 2: 'SW', 8: 'NE', 6: 'NW', 5: 'Center' }, 'N': { 1: 'S', 9: 'N', 7: 'E', 3: 'W', 2: 'SE', 4: 'SW', 6: 'NE', 8: 'NW', 5: 'Center' }, 'E': { 3: 'S', 7: 'N', 9: 'E', 1: 'W', 8: 'SE', 6: 'SW', 2: 'NE', 4: 'NW', 5: 'Center' }, 'W': { 7: 'S', 3: 'N', 1: 'E', 9: 'W', 6: 'SE', 8: 'SW', 4: 'NE', 2: 'NW', 5: 'Center' }, 'SE': { 4: 'S', 6: 'N', 2: 'E', 8: 'W', 3: 'SE', 5: 'SW', 9: 'NE', 7: 'NW', 5: 'Center' }, 'NW': { 6: 'S', 4: 'N', 8: 'E', 2: 'W', 7: 'SE', 9: 'SW', 1: 'NE', 3: 'NW', 5: 'Center' }, 'SW': { 2: 'S', 8: 'N', 6: 'E', 4: 'W', 5: 'SE', 3: 'SW', 7: 'NE', 1: 'NW', 5: 'Center' }, 'NE': { 8: 'S', 2: 'N', 4: 'E', 6: 'W', 9: 'SE', 1: 'SW', 3: 'NE', 5: 'NW', 5: 'Center' } };
+    const elementRelations = { promote: { water: "wood", wood: "fire", fire: "earth", earth: "metal", metal: "water" }, control: { water: "fire", fire: "metal", metal: "wood", wood: "earth", earth: "water" } };
+    
+    const frontCellMap = { 'S': [8, 1, 6], 'N': [4, 9, 2], 'E': [2, 7, 6], 'W': [4, 3, 8], 'SE': [1, 6, 7], 'SW': [8, 3, 4], 'NE': [2, 9, 4], 'NW': [8, 1, 2] };
+
+    function generateGrid() {
+        layoutGrid.innerHTML = '';
+        const direction = shopDirectionSelect.value;
+        const frontCells = frontCellMap[direction];
+        const loShuGridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+        
+        loShuGridOrder.forEach(num => {
+            const cell = document.createElement('div');
+            cell.classList.add('drop-zone', 'bg-stone-50', 'border', 'border-stone-200', 'p-2', 'flex', 'flex-col', 'items-center', 'justify-center', 'relative', 'gap-1');
+            cell.dataset.loShu = num;
+
+            const info = document.createElement('div');
+            info.classList.add('absolute', 'top-1', 'left-1', 'text-xs', 'text-stone-400');
+            const zoneDir = directionMap[direction][num];
+            info.textContent = `${zoneDir}`;
+            cell.appendChild(info);
+
+            if (frontCells.includes(num)) {
+                const indicator = document.createElement('div');
+                indicator.classList.add('front-indicator');
+                indicator.title = 'หน้าร้าน';
+                cell.appendChild(indicator);
+            }
+
+            cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drag-over'); });
+            cell.addEventListener('dragleave', () => { cell.classList.remove('drag-over'); });
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cell.classList.remove('drag-over');
+                if (draggedItem) {
+                    if (draggedItem.dataset.item === 'door') {
+                        const existingDoor = layoutGrid.querySelector('.placed-item[data-item="door"]');
+                        if (existingDoor) existingDoor.remove();
+                    }
+                    const clone = draggedItem.cloneNode(true);
+                    clone.classList.remove('drag-item');
+                    clone.classList.add('placed-item');
+                    clone.id = '';
+                    cell.appendChild(clone);
+                }
+            });
+            layoutGrid.appendChild(cell);
+        });
+    }
+
+    items.forEach(item => {
+        item.addEventListener('dragstart', (e) => { draggedItem = e.target; });
+    });
+    
+    shopDirectionSelect.addEventListener('change', generateGrid);
+
+    document.getElementById('reset-layout').addEventListener('click', generateGrid);
+
+    document.getElementById('analyze-layout').addEventListener('click', () => {
+        const selectedDirection = shopDirectionSelect.value;
+        const resultContainer = document.getElementById('result-container');
+        const analysisResult = document.getElementById('analysis-result');
+        resultContainer.innerHTML = '';
+
+        const currentMap = directionMap[selectedDirection];
+
+        layoutGrid.childNodes.forEach(cell => {
+            const loShuNum = cell.dataset.loShu;
+            const zoneInfo = loShuBase[loShuNum];
+            const zoneElement = zoneInfo.element;
+            const itemsInCell = cell.querySelectorAll('.placed-item');
+            const zoneDir = currentMap[loShuNum];
+
+            let advice = `<div class="p-4 bg-stone-100 rounded-lg">
+                <h4 class="font-bold">โซนทิศ ${zoneDir} (${zoneInfo.name}) - ธาตุ${zoneElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง')}</h4>`;
+
+            if (itemsInCell.length === 0) {
+                advice += `<p class="text-stone-600">โซนนี้ว่างอยู่ ลองพิจารณาวางของที่ส่งเสริมธาตุ${zoneElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง')} เช่น ${getSuggestion(zoneElement)}</p>`;
+            } else {
+                itemsInCell.forEach(item => {
+                    const itemName = item.textContent;
+                    const itemElement = item.dataset.element;
+                    const itemElementName = itemElement.replace('water','น้ำ').replace('wood','ไม้').replace('fire','ไฟ').replace('earth','ดิน').replace('metal','ทอง');
+
+                    if (itemElement === "none") {
+                         advice += `<p>✅ <strong>${itemName}:</strong> เป็นกลาง ไม่ส่งผลกระทบต่อธาตุในโซนนี้</p>`;
+                    } else if (itemElement === zoneElement) {
+                        advice += `<p class="text-green-700">🟢 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ยอดเยี่ยม! การวางของธาตุเดียวกับโซนเป็นการส่งเสริมโดยตรง</p>`;
+                    } else if (elementRelations.promote[zoneElement] === itemElement) {
+                        advice += `<p class="text-blue-700">🔵 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ดี! เป็นการส่งเสริมพลังงานของโซนนี้ (โซนให้กำเนิดสิ่งของ)</p>`;
+                    } else if (elementRelations.promote[itemElement] === zoneElement) {
+                         advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ควรระวัง! ของชิ้นนี้ดึงพลังงานไปจากโซน (โซนให้กำเนิดของ) ทำให้โซนอ่อนแอลง</p>`;
+                    } else if (elementRelations.control[itemElement] === zoneElement) {
+                        advice += `<p class="text-red-700">🔴 <strong>${itemName} (ธาตุ${itemElementName}):</strong> ควรระวัง! เป็นการพิฆาต (ทำลาย) พลังงานของโซนนี้ อาจก่อให้เกิดปัญหาได้</p>`;
+                    } else if (elementRelations.control[zoneElement] === itemElement) {
+                        advice += `<p class="text-yellow-700">🟡 <strong>${itemName} (ธาตุ${itemElementName}):</strong> พอใช้ได้ โซนนี้ควบคุมสิ่งของชิ้นนี้อยู่ ทำให้ไม่ส่งผลเสีย แต่ก็ไม่ส่งเสริม</p>`;
+                    }
+                });
+            }
+            advice += `</div>`;
+            resultContainer.innerHTML += advice;
+        });
+        analysisResult.classList.remove('hidden');
+    });
+    
+    document.getElementById('export-pdf').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const analysisResult = document.getElementById('result-container');
+        
+        const loader = document.createElement('div');
+        loader.textContent = 'กำลังสร้างไฟล์ PDF...';
+        loader.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg z-20';
+        document.body.appendChild(loader);
+
+        html2canvas(analysisResult, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgProps= pdf.getImageProperties(imgData);
+            const ratio = imgProps.height / imgProps.width;
+            
+            const canvasWidth = pdfWidth - 20; 
+            const canvasHeight = canvasWidth * ratio;
+
+            let heightLeft = canvasHeight;
+            let position = 15; 
+            
+            pdf.setFont('Sarabun-Regular', 'normal');
+            
+            pdf.addImage(imgData, 'PNG', 10, position, canvasWidth, canvasHeight);
+            heightLeft -= (pdfHeight-20);
+
+            while (heightLeft > 0) {
+              position = - (canvasHeight - heightLeft);
+              pdf.addPage();
+              pdf.addImage(imgData, 'PNG', 10, position, canvasWidth, canvasHeight);
+              heightLeft -= pdfHeight;
+            }
+
+            pdf.save('pharma-feng-shui-analysis.pdf');
+            document.body.removeChild(loader);
+        }).catch(err => {
+            console.error(err);
+             document.body.removeChild(loader);
+            alert('เกิดข้อผิดพลาดในการสร้าง PDF');
+        });
+    });
+
+    function getSuggestion(element) {
+        switch(element) {
+            case 'water': return 'ตู้ปลา, น้ำพุ, ของสีฟ้า/ดำ';
+            case 'wood': return 'ต้นไม้, เฟอร์นิเจอร์ไม้, ของสีเขียว';
+            case 'fire': return 'โคมไฟ, เทียน, ของสีแดง/ชมพู';
+            case 'earth': return 'ของที่ทำจากดิน/เซรามิก, ของสีเหลือง/น้ำตาล';
+            case 'metal': return 'ของที่เป็นโลหะ, ของสีขาว/เงิน/ทอง';
+            default: return '';
+        }
+    }
+    
+    generateGrid();
+});
+</script>
+
+</body>
+</html>
+
+
